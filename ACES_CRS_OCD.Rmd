@@ -122,8 +122,8 @@ Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
 DOCS_ConInt = interact_plot(Con_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all",)
-                            colors = c("#00BFC4","#368bd1","#0263a3")
+                             centered="all",
+                            colors = c("#00BFC4","#368bd1","#0263a3"))
 DOCS_ConInt$labels$x = "Covid Related Stress"
 DOCS_ConInt$labels$y = "Contamination Score"
 DOCS_ConInt$theme= theme_classic()
