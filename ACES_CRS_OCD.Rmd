@@ -1,0 +1,289 @@
+---
+title: "ACES_CRS_OCD"
+output: html_document
+date: "2023-04-05"
+---
+# Interactive effect of ACEs and CRS on OCD symptom severity
+
+```{r}
+getwd()
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(haven)
+library(summarytools)
+library(interactions)
+library(ggpubr)
+```
+This chunk calls the packages needed for figures
+
+## Importing, cleaning, and making new dataset
+### Import
+```{r}
+setwd("~/Desktop/Coding/R working directory/datafiles")
+ADAA_dup <- read_sav("/Users/troyhubert/Desktop/Coding/R working directory/datafiles/ADAA_SubmissionDataset.sav")
+```
+
+### Clean
+```{r}
+# Make new DF with no duplicates______________
+ADAA_no_dup <- ADAA_dup %>%
+  filter(Missing_or_Dup==0)
+# Check for missing or duplicates
+sum(ADAA_no_dup$Duplicate)
+sum(ADAA_no_dup$Missing_Data)
+# Code Variables for analysis_________________
+
+#ACE as integer 
+ADAA_no_dup$ace_tot = as.integer(ADAA_no_dup$ace_tot)
+
+#Change White 
+str(ADAA_no_dup$White)
+
+ADAA_no_dup$White <-as.factor(ADAA_no_dup$White)
+levels(ADAA_no_dup$White) <- Race_level<-c("Not White", "White")
+
+#Change Gender 
+ADAA_no_dup$sex <- as.factor(ADAA_no_dup$sex)
+levels(ADAA_no_dup$sex) <- Sex_level<-c("Male","Female")
+
+#Change Ethn 
+ADAA_no_dup$ethn <- as.factor(ADAA_no_dup$ethn)
+
+#change ACEs for Plot
+ADAA_no_dup$ACEs <- ADAA_no_dup$ace_tot
+```
+
+## Select variables for new DF
+```{r}
+Em_ADAA <- ADAA_no_dup%>%
+  filter(IncludeCases == 1) %>%
+  select(record_id,IncludeCases,White,sex,ethn, ACEs, crs_tot,DOCStot,DOCSCon,DOCSResp,DOCSUnTh,DOCSSym)
+Em_ADAA
+```
+# Figures
+
+## Figure 1 - Interaction total OCD severity
+```{r}
+#Define model
+DOCS_mod = glm(DOCStot~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+
+#create Interaction Plot 
+DOCS_IntPlot = interact_plot(DOCS_mod, pred = crs_tot, modx = ACEs, 
+                             modx.values = c(0, 1, 4), 
+                             interval = TRUE, int.width = 0.8,
+                             centered="all", colors = c("#00BFC4","#368bd1","#F8766D"))
+DOCS_IntPlot$labels$x = "Covid Related Stress"
+DOCS_IntPlot$labels$y = "Total DOCS Score"
+DOCS_IntPlot$theme= theme_classic()
+DOCS_IntPlot
+```
+
+## Figure 2 - JN PLOT - Total OCD Severity
+
+```{r}
+#define model
+  #This was already done above, but for referene
+DOCS_mod = glm(DOCStot~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+
+#create jn plot
+DOCS_jnplot = sim_slopes(DOCS_mod, pred = crs_tot, modx = ACEs, 
+                         jnplot = TRUE, 
+                         centered="all", 
+                         mod.range=c(0,10), 
+                         sig.color = "#F8766D",
+                        insig.color = "#00BFC4",
+                         title=" ")#Johnson neyman plot
+
+#Edit plot
+DOCS_plot = DOCS_jnplot$jnplot
+DOCS_plot$labels$y = "B (95% CI) of CRS on DOCS"
+DOCS_plot$labels$title=NULL
+DOCS_plot$labels$x = "ACES"
+DOCS_plot$labels$fill=NULL
+DOCS_plot$theme= theme_classic()
+DOCS_plot$labels$fill=NULL
+DOCS_plot<-DOCS_plot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+DOCS_plot
+```
+Putting them together
+```{r}
+ggarrange(DOCS_IntPlot, DOCS_plot, ncol = 2, nrow = 1)
+```
+
+### Figure 3 OCD Dimensions
+```{r}
+# CONTAMINATION _________________________________
+#define model
+Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create Interaction Plot 
+DOCS_ConInt = interact_plot(Con_mod, pred = crs_tot, modx = ACEs, 
+                             modx.values = c(0, 1, 4), 
+                             interval = TRUE, int.width = 0.8,
+                             centered="all",
+                            colors = c("#00BFC4","#368bd1","#F8766D"))
+DOCS_ConInt$labels$x = "Covid Related Stress"
+DOCS_ConInt$labels$y = "Contamination Score"
+DOCS_ConInt$theme= theme_classic()
+DOCS_ConInt
+
+#RESPONSIBILITY _____________________________
+#define model
+Resp_mod = glm(DOCSResp~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create Interaction Plot 
+DOCS_RespInt = interact_plot(Resp_mod, pred = crs_tot, modx = ACEs, 
+                             modx.values = c(0, 1, 4), 
+                             interval = TRUE, int.width = 0.8,
+                             centered="all",
+                            colors = c("#00BFC4","#368bd1","#F8766D"))
+DOCS_RespInt$labels$x = "Covid Related Stress"
+DOCS_RespInt$labels$y = "Responsibility Score"
+DOCS_RespInt$theme= theme_classic()
+DOCS_RespInt
+
+#UNACCEPTABLE THOUGHTS  _____________________________
+#define model
+UnTh_mod = glm(DOCSUnTh~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+DOCS_UnThInt = interact_plot(UnTh_mod, pred = crs_tot, modx = ACEs, 
+                             modx.values = c(0, 1, 4), 
+                             interval = TRUE, int.width = 0.8,
+                             centered="all",
+                             colors = c("#00BFC4","#368bd1","#F8766D"))
+DOCS_UnThInt$labels$x = "Covid Related Stress"
+DOCS_UnThInt$labels$y = "Unacceptable Thoughts Score"
+DOCS_UnThInt$theme= theme_classic()
+DOCS_UnThInt
+
+#SYMMETRY  _____________________________
+#define model
+Sym_mod = glm(DOCSSym~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+DOCS_SymInt = interact_plot(Sym_mod, pred = crs_tot, modx = ACEs, 
+                             modx.values = c(0, 1, 4), 
+                             interval = TRUE, int.width = 0.8,
+                             centered="all",
+                             colors = c("#00BFC4","#368bd1","#F8766D"))
+DOCS_SymInt$labels$x = "Covid Related Stress"
+DOCS_SymInt$labels$y = "Symmetry Score"
+DOCS_SymInt$theme= theme_classic()
+DOCS_SymInt
+```
+```{r}
+# PUTTING THEM ALL TOGETHER_______________
+ggarrange(DOCS_ConInt, DOCS_RespInt, DOCS_UnThInt, DOCS_SymInt,
+          ncol = 2, nrow = 2)
+```
+
+Figure 4 - OCD dimentions JN plot
+```{r}
+# CONTAMINATION _________________________________
+#define model
+Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+Con_jnplot = sim_slopes(Con_mod, pred = crs_tot, modx = ACEs, 
+                        jnplot = TRUE, 
+                        centered="all", 
+                        mod.range=c(0,10), 
+                        sig.color = "#F8766D",
+                        insig.color = "#00BFC4",
+                        title=" ")#Johnson neyman plot
+#Edit plot
+Con_plot = Con_jnplot$jnplot
+Con_plot$labels$y = "Contamination (B 95% CI)"
+Con_plot$labels$title=NULL
+Con_plot$labels$x = "ACES"
+Con_plot$labels$fill=NULL
+Con_plot$theme= theme_classic()
+Con_plot$labels$fill=NULL
+Con_plot<-Con_plot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+Con_plot
+
+#RESPONSIBILITY _____________________________
+#define model
+Resp_mod = glm(DOCSResp~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+Resp_jnplot = sim_slopes(Resp_mod, pred = crs_tot, modx = ACEs, 
+                         jnplot = TRUE, 
+                         centered="all", 
+                         mod.range=c(0,10), 
+                         sig.color = "#F8766D",
+                        insig.color = "#00BFC4",
+                         title=" ")
+#Edit plot
+Resp_plot = Con_jnplot$jnplot
+Resp_plot$labels$y = "Responsibility (B 95% CI)"
+Resp_plot$labels$title=NULL
+Resp_plot$labels$x = "ACES"
+Resp_plot$labels$fill=NULL
+Resp_plot$theme= theme_classic()
+Resp_plot$labels$fill=NULL
+Resp_plot<-Resp_plot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+Resp_plot
+
+#UNACCEPTABLE THOUGHTS  _____________________________
+#define model
+UnTh_mod = glm(DOCSUnTh~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+UnTh_jnplot = sim_slopes(UnTh_mod, pred = crs_tot, modx = ACEs, 
+                         jnplot = TRUE, 
+                         centered="all", 
+                         mod.range=c(0,10), 
+                         sig.color = "#F8766D",
+                        insig.color = "#00BFC4",
+                         title=" ")#Johnson neyman plot
+#Edit plot
+UnTh_plot = UnTh_jnplot$jnplot
+UnTh_plot$labels$y = "Unacceptable Thoughts (B 95% CI)"
+UnTh_plot$labels$title=NULL
+UnTh_plot$labels$x = "ACES"
+UnTh_plot$labels$fill=NULL
+UnTh_plot$theme= theme_classic()
+UnTh_plot$labels$fill=NULL
+UnTh_plot<-UnTh_plot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+UnTh_plot
+
+#SYMMETRY  _____________________________
+#define model
+Sym_mod = glm(DOCSSym~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+#create jn plot
+Sym_jnplot = sim_slopes(Sym_mod, pred = crs_tot, modx = ACEs, 
+                        jnplot = TRUE, 
+                        centered="all", 
+                        mod.range=c(0,10), 
+                        sig.color = "#F8766D",
+                        insig.color = "#00BFC4",
+                        title=" ")#Johnson neyman plot
+#Edit plot
+Sym_plot = UnTh_jnplot$jnplot
+Sym_plot$labels$y = "Symmetry (B 95% CI)"
+Sym_plot$labels$title=NULL
+Sym_plot$labels$x = "ACES"
+Sym_plot$labels$fill=NULL
+Sym_plot$theme= theme_classic()
+Sym_plot$labels$fill=NULL
+Sym_plot<-Sym_plot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+Sym_plot
+```
+
+```{r}
+# PUTTING THEM ALL TOGETHER_______________
+ggarrange(Con_plot, Resp_plot, UnTh_plot, Sym_plot,
+          ncol = 2, nrow = 2)
+```
+
+Putting the groups together
+
+```{r}
+ggarrange(DOCS_ConInt, Con_plot, ncol = 2, nrow = 1)
+
+ggarrange(DOCS_RespInt, Resp_plot, ncol = 2, nrow = 1)
+
+ggarrange(DOCS_UnThInt, UnTh_plot, ncol = 2, nrow = 1)
+
+ggarrange(DOCS_SymInt, Sym_plot, ncol = 2, nrow = 1)
+```
+
+

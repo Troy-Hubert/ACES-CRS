@@ -1,0 +1,229 @@
+---
+title: "ACES_CRS_PTSD"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+# Install packages
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("stringr")
+install.packages("papaja")
+install.packages("tinylabels")
+install.packages("apaTables")
+install.packages("haven")
+install.packages("psych")
+install.packages("summarytools")
+install.packages("jtools")
+install.packages("interactions")
+
+```
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(papaja)
+library(tinylabels)
+library(apaTables)
+library(haven)
+library(psych)
+library(summarytools) #for descriptives
+library(jtools)
+library(interactions)
+library(rlang)
+
+c1 = "#e57873"
+c2 = "#83dbd7"
+c3 = "#307d9f"
+colors = c(c3,c2,c1)
+```
+
+```{r import}
+dfall= read_sav("~/Desktop/Coding/Data/DuplicatesLabeled_SONADataset.sav")
+dfall = dfall[dfall$Missing_or_Dup==1,]
+dfall$ace_tot = as.integer(dfall$ace_tot)
+dfall$crs_tot  = dfall$crs_tot-mean(dfall$crs_tot)
+
+```
+
+```{r Table 1}
+library(arsenal) 
+dfall$ace2cat = factor(dfall$ace2cat)
+dfall$race = factor(dfall$race)
+dfall$sex = factor(dfall$sex)
+
+dfall$White=0
+dfall$White[dfall$race==5]=1
+dfall$White=factor(dfall$White)
+
+dfall$Male = 0
+dfall$Male[dfall$sex==1]=1
+dfall$Male=factor(dfall$Male)
+
+#make table
+table_one <- tableby(ace2cat~pcl_tot+crs_tot+LECtotal+PHQ9+White+Male, data = dfall)
+summary(table_one, title = "Demographics")
+
+```
+
+ask colton if he excluded anyone besides missing and dups. 
+```{r Figure 1}
+library(jtools)
+library(interactions)
+#define model
+mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+
+#create jn plot
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, mod.range=c(0,10), title="")#Johnson neyman plot
+
+
+tot = jnplot$jnplot
+tot$labels$y = "B (95% CI) of CRS on PCL"
+tot$labels$title=NULL
+tot$labels$x = "ACES"
+tot$labels$fill=NULL
+tot$theme= theme_classic()
+tot$labels$fill=NULL
+tot<-tot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+#ggsave("Figure1_updated.png",plot=tot, scale=1, width=2000,height=1500, units=c("px"),dpi=300)
+
+
+tot2 = interact_plot(mod, pred = crs_tot,  modx = ace_tot, modx.values = c(0,1,4),interval = TRUE,colors ="CUD") #plot interaction
+tot2$theme= theme_classic()
+tot2$labels$x = "Covid Related Stress Response"
+tot2$labels$y = "PCL-5 Total Score"
+tot2$labels$colour = "ACES"
+tot2$labels$fill = "ACES"
+
+tot2
+
+library(ggpubr)
+final=ggarrange(tot2, tot,
+          labels = c("A", "B"),
+          ncol = 2, nrow = 1, 
+        common.legend = FALSE)
+
+#get johnson-neyman value. 
+#jn = round(johnson_neyman(mod, pred = crs_tot, modx = ace_tot)$bounds[[2]],2)
+
+final
+ggsave("Figure1_12.8.22.png",plot=final, scale=1, width=8.5,height=5, units=c("in"),dpi=300)
+
+
+  
+```
+
+```{r Figure 2}
+
+ptsdvars = c("pcl_tot",  "pcl_reex", "pcl_avoi", "pcl_neg",  "pcl_aro")
+
+#Reexperiencing
+mod = glm(pcl_reex~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
+
+rex = jnplot$jnplot
+rex$labels$y = "B (95% CI) of CRS on PCL Re-experiencing"
+rex$labels$title=NULL
+rex$labels$x = "ACES"
+rex$labels$fill=NULL
+rex$theme= theme_classic()
+rex$labels$fill=NULL
+rex<-rex+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+
+#Avoidance
+mod = glm(pcl_avoi~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
+avoi = jnplot$jnplot
+avoi$labels$y = "B (95% CI) of CRS on PCL Avoidance"
+avoi$labels$title=NULL
+avoi$labels$x = "ACES"
+avoi$labels$fill=NULL
+avoi$theme= theme_classic()
+avoi$labels$fill=NULL
+avoi<-avoi+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+avoi
+
+#Negative
+mod = glm(pcl_neg~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
+neg = jnplot$jnplot
+neg$labels$y = "B (95% CI) of CRS on PCL Negative Alteration"
+neg$labels$title=NULL
+neg$labels$x = "ACES"
+neg$labels$fill=NULL
+neg$theme= theme_classic()
+neg$labels$fill=NULL
+neg<-neg+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+
+
+#Arousal 
+mod = glm(pcl_aro~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
+aro = jnplot$jnplot
+aro$labels$y = "B (95% CI) of CRS on PCL Hyperarousal"
+aro$labels$title=NULL
+aro$labels$x = "ACES"
+aro$labels$fill=NULL
+aro$theme= theme_classic()
+aro$labels$fill=NULL
+aro<-aro+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+
+#FINAL FIGURE
+library(ggpubr)
+final=ggarrange(rex, avoi, neg, aro, 
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, nrow = 2, 
+        common.legend = TRUE)
+ggsave("Figure2_Updated.png",plot=final, scale=1, width=8.5,height=9, units=c("in"),dpi=300)
+final
+```
+
+
+
+
+
+```{r Table 2}
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+
+apa.reg.table(lm(pcl_tot~crs_tot+ace_tot+LECtotal+PHQ9+race+sex, data=dfall),filename = "table2_updated.doc",table.number = 2)
+```
+
+
+```{r issue with jtools}
+#define model
+mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+
+
+
+#Alternative?
+marginaleffects=marginaleffects(mod)
+plot_cap(mod, condition = c("crs_tot", "ace_tot"))
+```
+```{r}
+# Install and load the packages
+#install.packages("ggplot2")
+#library(ggplot2)
+# Load the data
+data <- dfall
+# Fit a linear regression model
+model <- mod
+# Create the Johnson-Neyman plot
+ggplot(data, aes(x=data$explanatory, y=data$response)) +
+  geom_point(size=2) +
+  geom_smooth(method="lm", se=FALSE) +
+  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+               formula = model, 
+               parse = TRUE) +
+  theme_bw() +
+  scale_x_continuous(name="Explanatory Variable") +
+  scale_y_continuous(name="Response Variable") +
+  labs(title="Johnson-Neyman Point of Significance")
+```
+
