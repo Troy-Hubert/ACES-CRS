@@ -22,7 +22,9 @@ This chunk calls the packages needed for figures
 ## Importing, cleaning, and making new dataset
 ### Import
 ```{r}
+#Set your file destination
 setwd("~/Desktop/Coding/R working directory/datafiles")
+#Set where your dataset is, you can use the import button and copy that here.
 ADAA_dup <- read_sav("/Users/troyhubert/Desktop/Coding/R working directory/datafiles/ADAA_SubmissionDataset.sav")
 ```
 
@@ -62,13 +64,15 @@ Em_ADAA <- ADAA_no_dup%>%
   filter(IncludeCases == 1) %>%
   select(record_id,IncludeCases,White,sex,ethn, ACEs, crs_tot,DOCStot,DOCSCon,DOCSResp,DOCSUnTh,DOCSSym)
 Em_ADAA
+str(Em_ADAA)
 ```
 # Figures
 
 ## Figure 1 - Interaction total OCD severity
 ```{r}
+
 #Define model
-DOCS_mod = glm(DOCStot~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+DOCS_mod = glm(DOCStot~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 
 #create Interaction Plot 
 DOCS_IntPlot = interact_plot(DOCS_mod, pred = crs_tot, modx = ACEs, 
@@ -86,7 +90,7 @@ DOCS_IntPlot
 ```{r}
 #define model
   #This was already done above, but for referene
-DOCS_mod = glm(DOCStot~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+DOCS_mod = glm(DOCStot~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 
 #create jn plot
 DOCS_jnplot = sim_slopes(DOCS_mod, pred = crs_tot, modx = ACEs, 
@@ -117,7 +121,7 @@ ggarrange(DOCS_IntPlot, DOCS_plot, ncol = 2, nrow = 1)
 ```{r}
 # CONTAMINATION _________________________________
 #define model
-Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+Con_mod = glm(DOCSCon~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create Interaction Plot 
 DOCS_ConInt = interact_plot(Con_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
@@ -131,7 +135,7 @@ DOCS_ConInt
 
 #RESPONSIBILITY _____________________________
 #define model
-Resp_mod = glm(DOCSResp~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+Resp_mod = glm(DOCSResp~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create Interaction Plot 
 DOCS_RespInt = interact_plot(Resp_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
@@ -145,7 +149,7 @@ DOCS_RespInt
 
 #UNACCEPTABLE THOUGHTS  _____________________________
 #define model
-UnTh_mod = glm(DOCSUnTh~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+UnTh_mod = glm(DOCSUnTh~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create jn plot
 DOCS_UnThInt = interact_plot(UnTh_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
@@ -159,7 +163,7 @@ DOCS_UnThInt
 
 #SYMMETRY  _____________________________
 #define model
-Sym_mod = glm(DOCSSym~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+Sym_mod = glm(DOCSSym~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create jn plot
 DOCS_SymInt = interact_plot(Sym_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
@@ -176,7 +180,7 @@ Figure 4 - OCD dimentions JN plot
 ```{r}
 # CONTAMINATION _________________________________
 #define model
-Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+Con_mod = glm(DOCSCon~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create jn plot
 Con_jnplot = sim_slopes(Con_mod, pred = crs_tot, modx = ACEs, 
                         jnplot = TRUE, 
@@ -198,7 +202,7 @@ Con_plot
 
 #RESPONSIBILITY _____________________________
 #define model
-Resp_mod = glm(DOCSResp~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+Resp_mod = glm(DOCSResp~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create jn plot
 Resp_jnplot = sim_slopes(Resp_mod, pred = crs_tot, modx = ACEs, 
                          jnplot = TRUE, 
@@ -220,7 +224,7 @@ Resp_plot
 
 #UNACCEPTABLE THOUGHTS  _____________________________
 #define model
-UnTh_mod = glm(DOCSUnTh~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
+UnTh_mod = glm(DOCSUnTh~crs_tot*factor(ACEs)+White+ethn+sex, data=Em_ADAA)
 #create jn plot
 UnTh_jnplot = sim_slopes(UnTh_mod, pred = crs_tot, modx = ACEs, 
                          jnplot = TRUE, 
