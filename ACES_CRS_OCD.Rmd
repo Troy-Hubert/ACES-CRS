@@ -63,10 +63,47 @@ ADAA_no_dup$ACEs <- ADAA_no_dup$ace_tot
 Em_ADAA <- ADAA_no_dup%>%
   filter(IncludeCases == 1) %>%
   select(record_id,IncludeCases,White,sex,ethn, ACEs, crs_tot,DOCStot,DOCSCon,DOCSResp,DOCSUnTh,DOCSSym)
-Em_ADAA
-str(Em_ADAA)
+dfall<-Em_ADAA
+
 ```
 # Figures
+
+
+
+
+
+```{r}
+#Plotting Functions: 
+jnfig <- function(t){
+jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot,jnplot=TRUE,centered="all", mod.range=c(0,10),sig.color=sigcolor,insig.color=insigcolor)#Johnson neyman plot
+
+rex = jnplot$jnplot
+rex$labels$y = paste0("B (95% CI) of CRS on PCL ", titles[t])
+rex$labels$title=NULL
+rex$labels$x = "ACES"
+rex$labels$fill=NULL
+rex$theme= theme_classic()
+rex$labels$fill=NULL
+tempJN<-rex+scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+return(tempJN)
+}
+
+intfig <- function(t){
+totINT <-interact_plot(mod, pred = crs_tot,modx = ace_tot, 
+              modx.values = c(0,1,4),
+              interval=TRUE,
+              colors=c(cnonsigline,csigline),
+              legend.main="ACEs") #plot interaction
+totINT$theme= theme_classic()
+totINT$labels$x = "Covid Related Stress Response"
+totINT$labels$y = paste0("PCL-5 ",titles[t])
+tempINT=totINT
+return(tempINT)
+
+}
+```
+
+
 
 ## Figure 1 - Interaction total OCD severity
 ```{r}
@@ -80,7 +117,7 @@ summary(DOCS_mod)
 DOCS_IntPlot = interact_plot(DOCS_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all", colors = c("#00BFC4","#368bd1","#0263a3"))
+                             centered="all")
 DOCS_IntPlot$labels$x = "Covid Related Stress"
 DOCS_IntPlot$labels$y = "Total DOCS Score"
 DOCS_IntPlot$theme= theme_classic()
@@ -128,8 +165,7 @@ Con_mod = glm(DOCSCon~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
 DOCS_ConInt = interact_plot(Con_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all",
-                            colors = c("#00BFC4","#368bd1","#0263a3"))
+                             centered="all")
 DOCS_ConInt$labels$x = "Covid Related Stress"
 DOCS_ConInt$labels$y = "Contamination Score"
 DOCS_ConInt$theme= theme_classic()
@@ -143,8 +179,7 @@ summary(Resp_mod)
 DOCS_RespInt = interact_plot(Resp_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all",
-                            colors = c("#00BFC4","#368bd1","#0263a3"))
+                             centered="all")
 DOCS_RespInt$labels$x = "Covid Related Stress"
 DOCS_RespInt$labels$y = "Responsibility Score"
 DOCS_RespInt$theme= theme_classic()
@@ -158,8 +193,7 @@ summary(UnTh_mod)
 DOCS_UnThInt = interact_plot(UnTh_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all",
-                             colors = c("#00BFC4","#368bd1","#0263a3"))
+                             centered="all")
 DOCS_UnThInt$labels$x = "Covid Related Stress"
 DOCS_UnThInt$labels$y = "Unacceptable Thoughts Score"
 DOCS_UnThInt$theme= theme_classic()
@@ -172,8 +206,7 @@ Sym_mod = glm(DOCSSym~crs_tot*ACEs+White+ethn+sex, data=Em_ADAA)
 DOCS_SymInt = interact_plot(Sym_mod, pred = crs_tot, modx = ACEs, 
                              modx.values = c(0, 1, 4), 
                              interval = TRUE, int.width = 0.8,
-                             centered="all",
-                             colors = c("#00BFC4","#368bd1","#0263a3"))
+                             centered="all")
 DOCS_SymInt$labels$x = "Covid Related Stress"
 DOCS_SymInt$labels$y = "Symmetry Score"
 DOCS_SymInt$theme= theme_classic()
