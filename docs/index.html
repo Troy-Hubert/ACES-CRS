@@ -912,10 +912,8 @@ totJN&lt;-totJN +
   labs(title = &quot;Johnson Neyman Plot&quot;) + 
   scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10)) +
   theme_classic()  +
-  theme(legend.position = &quot;none&quot;) </code></pre>
-<pre><code>## Warning: Continuous limits supplied to discrete scale.
-## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
-<pre class="r"><code>  # I can&#39;t figure out how to change the title in R so I will do it in illustrator
+  theme(legend.position = &quot;none&quot;) 
+  # I can&#39;t figure out how to change the title in R so I will do it in illustrator
 
 #5. Put them together
 library(ggpubr)
@@ -986,29 +984,22 @@ make these plots for all four PTSS clusters.</p>
 <pre class="r"><code>#1. Rexexpereincing symptoms 
 mod = glm(pcl_reex~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
 rexINT = intfig(1)
-rexJN = jnfig(1)</code></pre>
-<pre><code>## Warning: Continuous limits supplied to discrete scale.
-## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
-<pre class="r"><code>#2. Avoidance Symptoms
+rexJN = jnfig(1)
+
+#2. Avoidance Symptoms
 mod = glm(pcl_avoi~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
-avoiJN=jnfig(2)</code></pre>
-<pre><code>## Warning: Continuous limits supplied to discrete scale.
-## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
-<pre class="r"><code>avoiINT=intfig(2)
+avoiJN=jnfig(2)
+avoiINT=intfig(2)
 
 #3. Negative Cognition Symptoms
 mod = glm(pcl_neg~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
-negJN=jnfig(3)</code></pre>
-<pre><code>## Warning: Continuous limits supplied to discrete scale.
-## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
-<pre class="r"><code>negINT=intfig(3)
+negJN=jnfig(3)
+negINT=intfig(3)
 
 #4. Hyper arousal Symptoms
 mod = glm(pcl_aro~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
-aroJN =jnfig(4)</code></pre>
-<pre><code>## Warning: Continuous limits supplied to discrete scale.
-## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
-<pre class="r"><code>aroINT = intfig(4)
+aroJN =jnfig(4)
+aroINT = intfig(4)
 
 #FINAL FIGURE
 library(ggpubr)

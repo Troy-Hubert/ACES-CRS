@@ -49,8 +49,8 @@ The code below starts by making visualizations for PTSS severity followed by exp
 
 # Prepare data for visualizaiton
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warnings=FALSE)
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 ### Load libraries used for visualizations
