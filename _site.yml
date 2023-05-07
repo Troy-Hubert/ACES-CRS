@@ -1,0 +1,7 @@
+name: "CRS and ACEs on PTSS"
+navbar:
+  title: "CRS and ACEs on PTSS"
+  left:
+    - text: "ACEs and CRS on PTSS"
+    - href: index.html
+output_dir: "docs"

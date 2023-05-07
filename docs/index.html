@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>ACEs and CRS on PTSS</title>
+
+<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">CRS and ACEs on PTSS</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown-header">ACEs and CRS on PTSS</li>
+<li>
+  <a href="index.html"></a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">ACEs and CRS on PTSS</h1>
+
+</div>
+
+
+<p>This website depicts the code used to make visualizations for the
+manuscript:</p>
+<p>Hubert. T.<sup>1</sup> , Rippey, C.<sup>1</sup> , Fenlon.
+E.<sup>1</sup> , Wild, H.<sup>1</sup> , Adams. T.<sup>1,2</sup> ( <em>In
+Preparation</em>) The Interactive Effect of COVID-Related Stress and
+Adverse Childhood Experiences on Post Traumatic Stress Disorder Symptoms
+in Adults.</p>
+<p><sup>1</sup>Department of Psychology, University of Kentucky.</p>
+<p><sup>2</sup>Department of Psychiatry, Yale School of Medicine.</p>
+<p>The code below was primarily written by <a
+href="https://www.linkedin.com/in/hannah-wild-she-her-483272131">Hannah
+Wild</a> and optimized by the primary author <a
+href="https://github.com/Troy-Hubert">Troy Hubert</a>.</p>
+<div id="current-study" class="section level1">
+<h1>Current Study</h1>
+<p>The current study aims to investigate how adverse childhoood
+experiences (ACEs) may impact the relationship between covid related
+stress (CRS) and posttraumatic stress symptoms (PTSS). The current study
+examined how the relationship between CRS and PTSS differed based upon
+no ACEs (ACEs = 0), low ACEs (ACEs = 1-3), and high ACEs (ACEs ≥ 4). We
+hypothesized that CRS would impact PTSS more in those with high ACEs
+(ACEs ≥ 4) compared to those with less ACEs (ACEs &lt; 4). Additionally
+we wanted to examine if this relationship was similar or different
+within the PTSS clusters (i.e., Re-expereining the traumatic related
+stimuli, avoidance of trauma related stimuli, negative cognitions and
+mood, and hyperarousal symptoms).</p>
+</div>
+<div id="abstract" class="section level1">
+<h1>Abstract</h1>
+<p><strong>Background:</strong> Childhood adversity may reduce the
+ability to cope and navigate stressors later in life. As such, there is
+a well-documented link between childhood adversity and posttraumatic
+stress symptoms (PTSS). Rates of psychiatric disorders increased during
+the COVID-19 pandemic. The current study aims to investigate the unique
+and interactive effects of COVID-related stress (CRS) and adverse
+childhood experiences (ACEs) on PTSS symptoms.</p>
+<p><strong>Method:</strong> A convenience sample of undergraduate
+students (n = 620) who endorsed at least one traumatic experience (Life
+Events Checklist for DSM-5) completed an online survey. Participants
+answered questionnaires to assess ACEs (0, 1-3, ≥ 4), coping and stress
+responses to COVID-related stressors, posttraumatic stress symptoms and
+symptom clusters, and symptoms of depression.</p>
+<p><strong>Results:</strong> For individuals who reported high levels of
+ACEs (≥4 ACEs), CRS significantly increased (B = .079, p = .009) PTS
+symptom severity. Additionally, there was an interactive effect of ACEs
+and CRS on the re-experiencing, negative alterations in cognition in
+mood, and hyperarousal symptom clusters.</p>
+<p><strong>Discussion:</strong> Individuals who experienced ACEs may be
+more vulnerable to the effects of environmental stress in adulthood,
+such as stressors experienced during the COVID-19 pandemic. This may
+increase the degree to which CRS impacts psychiatric symptoms, including
+symptoms of PTSD. Future research should examine associations between
+ACEs, adult environmental stressors, and psychiatric symptoms using
+longitudinal designs, validated clinician-administered interviews, and
+clinical samples. Conclusion: Environments of high stress, such as the
+COVID-19 pandemic, may increase the impact of PTSS in those with high
+levels of childhood adversity.</p>
+</div>
+<div id="information-on-visualizations" class="section level1">
+<h1>Information on Visualizations</h1>
+<p>The following code visualizes moderation analysis regression models.
+Two main plots are made:</p>
+<ol style="list-style-type: decimal">
+<li>Johnson Neyman Plot
+<ul>
+<li>This plot signifies at what point there is a significant
+interaction.</li>
+</ul></li>
+<li>Interaction Intervals
+<ul>
+<li>This plot shows the slopes of X (i.e., Covid Related Stress) onto Y
+(i.e., PTSS) at three different levels of ACES (e.g., 0, 1-3, ≥ 4).</li>
+</ul></li>
+</ol>
+<p>The code below starts by making visualizations for PTSS severity
+followed by exploratory analyses visualizing PTSS symptom clusters
+(intrusive thoughts, avoidance of trauma related stimuli, negative
+cogitions and mood, and hyper-arousal).</p>
+</div>
+<div id="prepare-data-for-visualizaiton" class="section level1">
+<h1>Prepare data for visualizaiton</h1>
+<div id="load-libraries-used-for-visualizations" class="section level3">
+<h3>Load libraries used for visualizations</h3>
+<pre class="r"><code># Libraries used
+require(&quot;tidyverse&quot;)
+require(&quot;dplyr&quot;)
+require(&quot;stringr&quot;)
+require(&quot;papaja&quot;)
+require(&quot;tinylabels&quot;)
+require(&quot;apaTables&quot;)
+require(&quot;haven&quot;)
+require(&quot;psych&quot;)
+require(&quot;summarytools&quot;)
+require(&quot;jtools&quot;)
+require(&quot;interactions&quot;)
+require(&quot;rlang&quot;)
+require(&quot;kableExtra&quot;)</code></pre>
+</div>
+<div id="chagne-data-types" class="section level3">
+<h3>Chagne data types</h3>
+<pre class="r"><code>dfall= read_sav(&quot;~/Desktop/Coding/Data/DuplicatesLabeled_SONADataset.sav&quot;)
+dfall = dfall[dfall$Missing_or_Dup==1,]
+dfall$ace_tot = as.integer(dfall$ace_tot)
+dfall$crs_tot  = dfall$crs_tot-mean(dfall$crs_tot)
+
+dfall &lt;- dfall %&gt;%
+  mutate(ace_3cat = as.factor(ifelse(ace_tot == 0, &quot;0 ACEs&quot;, 
+                    ifelse(ace_tot &gt; 0 &amp; ace_tot &lt; 4, &quot;1-3 ACEs&quot;, &quot;≥4 ACEs&quot;))))
+
+library(arsenal) 
+dfall$ace2cat = factor(dfall$ace2cat)
+dfall$race = factor(dfall$race)
+dfall$sex = factor(dfall$sex)
+
+dfall$White=0
+dfall$White[dfall$race==5]=1
+dfall$White=factor(dfall$White)
+
+dfall$Male = 0
+dfall$Male[dfall$sex==1]=1
+dfall$Male=factor(dfall$Male)</code></pre>
+</div>
+</div>
+<div id="table-1-discriptive-analyses" class="section level1">
+<h1>Table 1: Discriptive Analyses</h1>
+<p>The first thing we want to do is create a table displaying
+descriptive statistics for our demographics</p>
+<div id="demographics-and-descriptives-statistics-of-variables"
+class="section level3">
+<h3>Demographics and descriptives statistics of variables</h3>
+<pre class="r"><code>Demo_tab&lt;-data.frame(table1::table1(~ace_tot+pcl_tot+crs_tot+LECtotal+PHQ9+White+Male | ace_3cat, data=dfall))
+Demo_tab&lt;- cbind(Demo_tab[,1], Demo_tab[,5], Demo_tab[,3], Demo_tab[,4], Demo_tab[,2])
+colnames(Demo_tab) &lt;- c(&quot;Variable&quot;,&quot;Total Sample&quot;, &quot;0 ACEs&quot;, &quot;1-3 ACEs&quot;, &quot;≥4 ACEs&quot; )
+
+x&lt;-knitr::kable(Demo_tab) %&gt;%
+    kableExtra::kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;))
+kableExtra::add_footnote(x, c(&quot;CRS was mean centered for moderation analysis&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Variable
+</th>
+<th style="text-align:left;">
+Total Sample
+</th>
+<th style="text-align:left;">
+0 ACEs
+</th>
+<th style="text-align:left;">
+1-3 ACEs
+</th>
+<th style="text-align:left;">
+≥4 ACEs
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+(N=620)
+</td>
+<td style="text-align:left;">
+(N=203)
+</td>
+<td style="text-align:left;">
+(N=288)
+</td>
+<td style="text-align:left;">
+(N=129)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ace_tot
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mean (SD)
+</td>
+<td style="text-align:left;">
+1.94 (2.05)
+</td>
+<td style="text-align:left;">
+0 (0)
+</td>
+<td style="text-align:left;">
+1.83 (0.808)
+</td>
+<td style="text-align:left;">
+5.25 (1.32)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median [Min, Max]
+</td>
+<td style="text-align:left;">
+1.00 [0, 10.0]
+</td>
+<td style="text-align:left;">
+0 [0, 0]
+</td>
+<td style="text-align:left;">
+2.00 [1.00, 3.00]
+</td>
+<td style="text-align:left;">
+5.00 [4.00, 10.0]
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+= ‘PTSD Checklist for DSM5 - Total’
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mean (SD)
+</td>
+<td style="text-align:left;">
+17.3 (19.3)
+</td>
+<td style="text-align:left;">
+10.6 (14.0)
+</td>
+<td style="text-align:left;">
+16.6 (18.5)
+</td>
+<td style="text-align:left;">
+29.5 (22.5)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median [Min, Max]
+</td>
+<td style="text-align:left;">
+10.0 [0, 80.0]
+</td>
+<td style="text-align:left;">
+5.00 [0, 61.0]
+</td>
+<td style="text-align:left;">
+10.0 [0, 80.0]
+</td>
+<td style="text-align:left;">
+27.0 [0, 80.0]
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Covid Related Stress - Total
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mean (SD)
+</td>
+<td style="text-align:left;">
+0.000000000000000737 (9.16)
+</td>
+<td style="text-align:left;">
+-2.66 (8.29)
+</td>
+<td style="text-align:left;">
+0.208 (8.48)
+</td>
+<td style="text-align:left;">
+3.73 (10.5)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median [Min, Max]
+</td>
+<td style="text-align:left;">
+-1.13 [-14.1, 30.9]
+</td>
+<td style="text-align:left;">
+-4.13 [-14.1, 25.9]
+</td>
+<td style="text-align:left;">
+-0.126 [-14.1, 24.9]
+</td>
+<td style="text-align:left;">
+3.87 [-14.1, 30.9]
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LEC - Total (directly, witnessed it, learned about it happening to close
+friend/relative, and/or experienced it in their job)
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mean (SD)
+</td>
+<td style="text-align:left;">
+6.45 (4.16)
+</td>
+<td style="text-align:left;">
+5.65 (4.08)
+</td>
+<td style="text-align:left;">
+6.54 (4.14)
+</td>
+<td style="text-align:left;">
+7.53 (4.11)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median [Min, Max]
+</td>
+<td style="text-align:left;">
+6.00 [1.00, 17.0]
+</td>
+<td style="text-align:left;">
+5.00 [1.00, 17.0]
+</td>
+<td style="text-align:left;">
+6.00 [1.00, 17.0]
+</td>
+<td style="text-align:left;">
+7.00 [1.00, 17.0]
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PHQ9
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mean (SD)
+</td>
+<td style="text-align:left;">
+8.83 (6.33)
+</td>
+<td style="text-align:left;">
+6.36 (5.67)
+</td>
+<td style="text-align:left;">
+8.85 (5.85)
+</td>
+<td style="text-align:left;">
+12.6 (6.47)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median [Min, Max]
+</td>
+<td style="text-align:left;">
+8.00 [0, 27.0]
+</td>
+<td style="text-align:left;">
+5.00 [0, 27.0]
+</td>
+<td style="text-align:left;">
+8.00 [0, 27.0]
+</td>
+<td style="text-align:left;">
+13.0 [0, 27.0]
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+White
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+143 (23.1%)
+</td>
+<td style="text-align:left;">
+44 (21.7%)
+</td>
+<td style="text-align:left;">
+65 (22.6%)
+</td>
+<td style="text-align:left;">
+34 (26.4%)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+477 (76.9%)
+</td>
+<td style="text-align:left;">
+159 (78.3%)
+</td>
+<td style="text-align:left;">
+223 (77.4%)
+</td>
+<td style="text-align:left;">
+95 (73.6%)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Male
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+470 (75.8%)
+</td>
+<td style="text-align:left;">
+143 (70.4%)
+</td>
+<td style="text-align:left;">
+218 (75.7%)
+</td>
+<td style="text-align:left;">
+109 (84.5%)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+150 (24.2%)
+</td>
+<td style="text-align:left;">
+60 (29.6%)
+</td>
+<td style="text-align:left;">
+70 (24.3%)
+</td>
+<td style="text-align:left;">
+20 (15.5%)
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup>a</sup> CRS was mean centered for moderation analysis
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<div id="figure-1-ptss-severity" class="section level1">
+<h1>Figure 1: PTSS severity</h1>
+<div id="interactions-of-covid-related-stress-on-ptss-severity"
+class="section level3">
+<h3>Interactions of covid related stress on PTSS severity</h3>
+<p>First we are going to specify the colors we want to use in our
+figures.</p>
+<pre class="r"><code>c1 = &quot;#e57873&quot;
+c2 = &quot;#83dbd7&quot;
+c3 = &quot;#307d9f&quot;
+colors = c(c3,c2,c1)
+
+cnonsigline = &quot;#6ed1d5&quot;
+cnonsigfill = &quot;#9ee0e4&quot;
+  
+csigline = &quot;#faaba8&quot;
+csigfill=&quot;#fcbfbc&quot;
+  
+sigcolor=&quot;#e8bfbd&quot;
+insigcolor=&quot;#89d5d8&quot;</code></pre>
+</div>
+<div id="plot-the-figures" class="section level3">
+<h3>Plot the figures</h3>
+<p>Next we are going to run a linear regression using
+<code>glm()</code>. This regession output will be used to create both
+the interaction slopes plot, and the Johnson Neyman (JN) plot. The
+interaction slopes plot will be made using <code>interact_plot()</code>
+and the JN plot will be made using <code>johnson_neyman()</code>. Both
+<code>interact_plot()</code>and <code>johnson_neyman()</code> use
+<code>ggplot()</code> to make their visualizations.</p>
+<pre class="r"><code>#1. define model
+mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data=dfall)
+
+#2. plot interaction 
+totINT &lt;-interact_plot(mod, pred = crs_tot,modx = ace_tot, 
+              modx.values = c(0,1,4),
+              interval=TRUE,
+              colors=c(cnonsigline,csigline),
+              legend.main=&quot;ACEs&quot;) +
+              ylab(&quot;PCL-5 Total Score&quot;) +
+              xlab(&quot;Covid Related Stress Response&quot;) +
+              labs(title = &quot;CRS and ACEs Interaction&quot;) +                                              theme_classic() +
+              theme(legend.position = &quot;bottom&quot;)
+  
+totINT</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>#3. Create Johnson Neyman plot
+totJN&lt;-johnson_neyman(mod, pred = crs_tot, modx = ace_tot,mod.range=c(0,10), sig.color = sigcolor, insig.color = insigcolor)$plot
+
+#4. JN plot
+totJN&lt;-totJN +
+  ylab(&quot;B (95% CI) of CRS on PCL&quot;) +
+  xlab(&quot;ACES&quot;) +
+  labs(title = &quot;Johnson Neyman Plot&quot;) + 
+  scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10)) +
+  theme_classic()  +
+  theme(legend.position = &quot;none&quot;) </code></pre>
+<pre><code>## Warning: Continuous limits supplied to discrete scale.
+## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
+<pre class="r"><code>  # I can&#39;t figure out how to change the title in R so I will do it in illustrator
+
+#5. Put them together
+library(ggpubr)
+final=ggarrange(totINT, totJN,
+          ncol = 2, nrow = 1, 
+          widths = c(1, 1, 1),
+        common.legend = FALSE)
+  # Its squishy and idk why
+final</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;~/Desktop/Coding/Figure1_ACE_CRS_PTSD.png&quot;,plot=final, scale=1, width=8.5,height=5, units=c(&quot;in&quot;),dpi=300)</code></pre>
+</div>
+<div id="explination-of-results" class="section level3">
+<h3>Explination of results</h3>
+<p>These results suggest that ACEs may moderates the relationship
+between CRS and PTSS severity. More specifically, Individuals who report
+4 or more ACEs have significantly higher PTSS based upon CRS compared to
+those who report less than 4 ACEs. The level that the interactive effect
+becomes signiicant is at 4 ACEs.</p>
+</div>
+</div>
+<div id="figure-2-ptss-symptom-clusters" class="section level1">
+<h1>Figure 2 PTSS Symptom Clusters</h1>
+<div id="create-functions-for-plots" class="section level3">
+<h3>Create functions for plots</h3>
+<p>For the symptom clusters we are first going to create functions
+(<code>intfig()</code> and <code>jnfig()</code>) that will create the
+plots for us, reducing the amount of code needed to make all 8 plots. We
+are also creating a vector of the PTSS cluster names that will be called
+in these functions.</p>
+<pre class="r"><code>#1. Interaction plot function
+intfig &lt;- function(t){
+tempINT &lt;-interact_plot(mod,
+              pred = crs_tot,modx = ace_tot, 
+              modx.values = c(0,1,4),
+              interval=TRUE,
+              colors=c(cnonsigline,csigline),
+              legend.main=&quot;ACEs&quot;) +
+              ylab(titles[t]) +
+              xlab(&quot;Covid Related Stress&quot;) +                                                          theme_classic() +
+              labs(title=titles[t]) +  
+              theme(legend.position = &quot;bottom&quot;) +
+              theme(text = element_text(size = 8)) 
+return(tempINT)
+}
+
+#2. Johnson Neyman plot function
+jnfig &lt;- function(t){
+tempJN&lt;-johnson_neyman(mod, pred = crs_tot, modx = ace_tot,mod.range=c(0,10), sig.color = sigcolor, insig.color = insigcolor)$plot +
+  ylab(titles[t]) +
+  labs(title=titles[t]) +
+  xlab(&quot;ACES&quot;) +
+  scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10)) +
+  theme_classic()  +
+  theme(legend.position = &quot;none&quot;) +
+  theme(text = element_text(size = 8)) 
+return(tempJN)
+}
+
+#3. Set values or functions
+ptsdvars = c(&quot;pcl_reex&quot;, &quot;pcl_avoi&quot;, &quot;pcl_neg&quot;,  &quot;pcl_aro&quot;)
+titles = c(&quot;Re-experiencing&quot;,&quot;Avoidance&quot;,&quot;Negative Alteration&quot;,&quot;Arousal&quot;)</code></pre>
+</div>
+<div id="running-plot-functions" class="section level3">
+<h3>Running Plot Functions</h3>
+<p>The code below uses <code>intfig()</code> and <code>jnfig()</code> to
+make these plots for all four PTSS clusters.</p>
+<pre class="r"><code>#1. Rexexpereincing symptoms 
+mod = glm(pcl_reex~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+rexINT = intfig(1)
+rexJN = jnfig(1)</code></pre>
+<pre><code>## Warning: Continuous limits supplied to discrete scale.
+## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
+<pre class="r"><code>#2. Avoidance Symptoms
+mod = glm(pcl_avoi~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+avoiJN=jnfig(2)</code></pre>
+<pre><code>## Warning: Continuous limits supplied to discrete scale.
+## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
+<pre class="r"><code>avoiINT=intfig(2)
+
+#3. Negative Cognition Symptoms
+mod = glm(pcl_neg~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+negJN=jnfig(3)</code></pre>
+<pre><code>## Warning: Continuous limits supplied to discrete scale.
+## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
+<pre class="r"><code>negINT=intfig(3)
+
+#4. Hyper arousal Symptoms
+mod = glm(pcl_aro~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+aroJN =jnfig(4)</code></pre>
+<pre><code>## Warning: Continuous limits supplied to discrete scale.
+## ℹ Did you mean `limits = factor(...)` or `scale_*_continuous()`?</code></pre>
+<pre class="r"><code>aroINT = intfig(4)
+
+#FINAL FIGURE
+library(ggpubr)
+final=ggarrange(rexINT, rexJN, avoiINT, avoiJN,negINT, negJN,aroINT, aroJN,
+        #  labels = c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;,&quot;E&quot;,&quot;F&quot;,&quot;G&quot;,&quot;H&quot;),
+          ncol = 4, nrow = 2, 
+        common.legend = TRUE)
+
+final</code></pre>
+<p><img src="index_files/figure-html/figure%202-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;Figure2_1.18.23.png&quot;,plot=final, scale=1, width=10,height=8, units=c(&quot;in&quot;),dpi=300)</code></pre>
+</div>
+<div id="explanation-of-results" class="section level3">
+<h3>Explanation of results</h3>
+<p>These results suggest that ACEs moderates the relationship between
+CRS and Rexexpereincing, Negative Cognitions, and Hyperarousal symptoms.
+More specifically, Individuals who report 4 or more ACEs have
+significantly higher PTS for these symptom clusters (i.e.,
+Rexexpereincing, Negative Cognitions, and Hyperarousal) based upon CRS
+compared to those who report less than 4 ACEs. The level that the
+interactive effect becomes signiicant is at 4 ACEs. For all of these
+symptom clusters</p>
+<p>There was not a significant interaction between CRS and ACEs on
+Avoidance symptoms; Said otherwise, there is not a difference between
+the relationship of CRS and avoidance PTSS at any level of ACEs.</p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
