@@ -1,57 +1,88 @@
 ---
-title: "ACES_CRS_PTSD"
-output: html_notebook
-editor_options: 
-  chunk_output_type: console
+title: "ACEs and CRS on PTSS"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
 ---
 
+This website depicts the code used to make visualizations for the manuscript:
 
-```{r}
-# Install packages
-# install.packages("tidyverse")
-# install.packages("dplyr")
-# install.packages("stringr")
-# install.packages("papaja")
-# install.packages("tinylabels")
-# install.packages("apaTables")
-# install.packages("haven")
-# install.packages("psych")
-# install.packages("summarytools")
-# install.packages("jtools")
-# install.packages("interactions")
+Hubert. T.^1^ , Rippey, C.^1^ , Fenlon. E.^1^ , Wild, H.^1^ , Adams. T.^1,2^ ( _In Preparation_) The Interactive Effect of COVID-Related Stress and Adverse Childhood Experiences on Post Traumatic Stress Disorder Symptoms in Adults.
 
+^1^Department of Psychology, University of Kentucky.
+
+^2^Department of Psychiatry, Yale School of Medicine.
+
+The code below was primarily written by [Hannah Wild](https://www.linkedin.com/in/hannah-wild-she-her-83272131) and optimized by the primary author [Troy Hubert](https://github.com/Troy-Hubert).
+
+# Current Study
+
+The current study aims to investigate how adverse childhoood experiences (ACEs) may impact the relationship between covid related stress (CRS) and posttraumatic stress symptoms (PTSS). The current study examined how the relationship between CRS and PTSS differed based upon no ACEs (ACEs = 0), low ACEs (ACEs = 1-3), and high ACEs (ACEs ≥ ). We hypothesized that CRS would impact PTSS more in those with high ACEs (ACEs ≥ 4) compared to those with less ACEs (ACEs < ). Additionally we wanted to examine if this relationship was similar or different within the PTSS clusters (i.e., Re-expereining the traumatic related stimuli, avoidance of trauma related stimuli, negative cognitions and mood, and hyperarousal symptoms).
+
+
+# Abstract
+
+**Background:** Childhood adversity may reduce the ability to cope and navigate stressors later in life. As such, there is a well-documented link between childhood adversity and posttraumatic stress symptoms (PTSS). Rates of psychiatric disorders increased during the COVID-19 pandemic. The current study aims to investigate the unique and interactive effects of COVID-related stress (CRS) and adverse childhood experiences (ACEs) on PTSS symptoms.
+
+**Method:** A convenience sample of undergraduate students (n = 620) who endorsed at least one traumatic experience (Life Events Checklist for DSM-5) completed an online survey. Participants answered questionnaires to assess ACEs (0, 1-3, ≥ ), coping and stress responses to COVID-related stressors, posttraumatic stress symptoms and symptom clusters, and symptoms of depression. 
+
+**Results:** For individuals who reported high levels of ACEs (4≥ ACEs), CRS significantly increased (B = .079, p = .009) PTS symptom severity. Additionally, there was an interactive effect of ACEs and CRS on the re-experiencing, negative alterations in cognition in mood, and hyperarousal symptom clusters.
+
+**Discussion:** Individuals who experienced ACEs may be more vulnerable to the effects of environmental stress in adulthood, such as stressors experienced during the COVID-19 pandemic. This may increase the degree to which CRS impacts psychiatric symptoms, including symptoms of PTSD. Future research should examine associations between ACEs, adult environmental stressors, and psychiatric symptoms using longitudinal designs, validated clinician-administered interviews, and clinical samples.
+Conclusion: Environments of high stress, such as the COVID-19 pandemic, may increase the impact of PTSS in those with high levels of childhood adversity. 
+
+#  Information on Visualizations
+
+The following code visualizes moderation analysis regression models. Two main plots are made:
+
+1. Johnson Neyman Plot
+    + This plot signifies at what point there is a significant interaction.
+2. Interaction Intervals 
+    + This plot shows the slopes of X (i.e., Covid Related Stress) onto Y (i.e., PTSS) at three different levels of ACES (e.g., 0, 1-3, ≥ 4).
+    
+The code below starts by making visualizations for PTSS severity followed by exploratory analyses visualizing PTSS symptom clusters (intrusive thoughts, avoidance of trauma related stimuli, negative cogitions and mood, and hyper-arousal). 
+
+# Prepare data for visualizaiton
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warnings=FALSE)
 ```
 
+### Load libraries used for visualizations
 
 ```{r}
-library(tidyverse)
-library(dplyr)
-library(stringr)
-library(papaja)
-library(tinylabels)
-library(apaTables)
-library(haven)
-library(psych)
-library(summarytools) #for descriptives
-library(jtools)
-library(interactions)
-library(rlang)
-
-c1 = "#e57873"
-c2 = "#83dbd7"
-c3 = "#307d9f"
-colors = c(c3,c2,c1)
+# Libraries used
+require("tidyverse")
+require("dplyr")
+require("stringr")
+require("papaja")
+require("tinylabels")
+require("apaTables")
+require("haven")
+require("psych")
+require("summarytools")
+require("jtools")
+require("interactions")
+require("rlang")
+require("kableExtra")
 ```
 
+### Chagne data types 
 ```{r import}
 dfall= read_sav("~/Desktop/Coding/Data/DuplicatesLabeled_SONADataset.sav")
 dfall = dfall[dfall$Missing_or_Dup==1,]
 dfall$ace_tot = as.integer(dfall$ace_tot)
 dfall$crs_tot  = dfall$crs_tot-mean(dfall$crs_tot)
 
-```
+dfall <- dfall %>%
+  mutate(ace_3cat = as.factor(ifelse(ace_tot == 0, "0 ACEs", 
+                    ifelse(ace_tot > 0 & ace_tot < 4, "1-3 ACEs", "≥4 ACEs"))))
 
-```{r Table 1}
 library(arsenal) 
 dfall$ace2cat = factor(dfall$ace2cat)
 dfall$race = factor(dfall$race)
@@ -64,166 +95,383 @@ dfall$White=factor(dfall$White)
 dfall$Male = 0
 dfall$Male[dfall$sex==1]=1
 dfall$Male=factor(dfall$Male)
-
-#make table
-table_one <- tableby(ace2cat~pcl_tot+crs_tot+LECtotal+PHQ9+White+Male, data = dfall)
-summary(table_one, title = "Demographics")
-
 ```
 
-ask colton if he excluded anyone besides missing and dups. 
-```{r Figure 1}
-library(jtools)
-library(interactions)
-#define model
-mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
+# Table 1: Discriptive Analyses
 
-#create jn plot
-jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, mod.range=c(0,10), title="")#Johnson neyman plot
+The first thing we want to do is create a table displaying descriptive statistics for our demographics
 
+### Demographics and descriptives statistics of variables 
+```{r Table 1}
+Demo_tab<-data.frame(table1::table1(~ace_tot+pcl_tot+crs_tot+LECtotal+PHQ9+White+Male | ace_3cat, data=dfall))
+Demo_tab<- cbind(Demo_tab[,1], Demo_tab[,5], Demo_tab[,3], Demo_tab[,4], Demo_tab[,2])
+colnames(Demo_tab) <- c("Variable","Total Sample", "0 ACEs", "1-3 ACEs", "≥4 ACEs" )
 
-tot = jnplot$jnplot
-tot$labels$y = "B (95% CI) of CRS on PCL"
-tot$labels$title=NULL
-tot$labels$x = "ACES"
-tot$labels$fill=NULL
-tot$theme= theme_classic()
-tot$labels$fill=NULL
-tot<-tot+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
-#ggsave("Figure1_updated.png",plot=tot, scale=1, width=2000,height=1500, units=c("px"),dpi=300)
+x<-knitr::kable(Demo_tab) %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+kableExtra::add_footnote(x, c("CRS was mean centered for moderation analysis"))
+```
 
+# Figure 1: PTSS severity
 
-tot2 = interact_plot(mod, pred = crs_tot,  modx = ace_tot, modx.values = c(0,1,4),interval = TRUE,colors ="CUD") #plot interaction
-tot2$theme= theme_classic()
-tot2$labels$x = "Covid Related Stress Response"
-tot2$labels$y = "PCL-5 Total Score"
-tot2$labels$colour = "ACES"
-tot2$labels$fill = "ACES"
+### Interactions of covid related stress on PTSS severity 
 
-tot2
+First we are going to specify the colors we want to use in our figures.
+```{r}
+c1 = "#e57873"
+c2 = "#83dbd7"
+c3 = "#307d9f"
+colors = c(c3,c2,c1)
 
-library(ggpubr)
-final=ggarrange(tot2, tot,
-          labels = c("A", "B"),
-          ncol = 2, nrow = 1, 
-        common.legend = FALSE)
-
-#get johnson-neyman value. 
-#jn = round(johnson_neyman(mod, pred = crs_tot, modx = ace_tot)$bounds[[2]],2)
-
-final
-ggsave("Figure1_12.8.22.png",plot=final, scale=1, width=8.5,height=5, units=c("in"),dpi=300)
-
-
+cnonsigline = "#6ed1d5"
+cnonsigfill = "#9ee0e4"
   
+csigline = "#faaba8"
+csigfill="#fcbfbc"
+  
+sigcolor="#e8bfbd"
+insigcolor="#89d5d8"
 ```
 
-```{r Figure 2}
+### Plot the figures
+Next we are going to run a linear regression using `glm()`. This regession output will be used to create both the interaction slopes plot, and the Johnson Neyman (JN) plot. The interaction slopes plot will be made using `interact_plot()` and the JN plot will be made using `johnson_neyman()`. Both `interact_plot()`and `johnson_neyman()` use `ggplot()` to make their visualizations. 
+```{r}
+#1. define model
+mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data=dfall)
 
-ptsdvars = c("pcl_tot",  "pcl_reex", "pcl_avoi", "pcl_neg",  "pcl_aro")
+#2. plot interaction 
+totINT <-interact_plot(mod, pred = crs_tot,modx = ace_tot, 
+              modx.values = c(0,1,4),
+              interval=TRUE,
+              colors=c(cnonsigline,csigline),
+              legend.main="ACEs") +
+              ylab("PCL-5 Total Score") +
+              xlab("Covid Related Stress Response") +
+              labs(title = "CRS and ACEs Interaction") +                                              theme_classic() +
+              theme(legend.position = "bottom")
+  
+totINT
 
-#Reexperiencing
-mod = glm(pcl_reex~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
-jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
+#3. Create Johnson Neyman plot
+totJN<-johnson_neyman(mod, pred = crs_tot, modx = ace_tot,mod.range=c(0,10), sig.color = sigcolor, insig.color = insigcolor)$plot
 
-rex = jnplot$jnplot
-rex$labels$y = "B (95% CI) of CRS on PCL Re-experiencing"
-rex$labels$title=NULL
-rex$labels$x = "ACES"
-rex$labels$fill=NULL
-rex$theme= theme_classic()
-rex$labels$fill=NULL
-rex<-rex+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+#4. JN plot
+totJN<-totJN +
+  ylab("B (95% CI) of CRS on PCL") +
+  xlab("ACES") +
+  labs(title = "Johnson Neyman Plot") + 
+  scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10)) +
+  theme_classic()  +
+  theme(legend.position = "none") 
+  # I can't figure out how to change the title in R so I will do it in illustrator
 
-#Avoidance
-mod = glm(pcl_avoi~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
-jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
-avoi = jnplot$jnplot
-avoi$labels$y = "B (95% CI) of CRS on PCL Avoidance"
-avoi$labels$title=NULL
-avoi$labels$x = "ACES"
-avoi$labels$fill=NULL
-avoi$theme= theme_classic()
-avoi$labels$fill=NULL
-avoi<-avoi+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
-avoi
+#5. Put them together
+library(ggpubr)
+final=ggarrange(totINT, totJN,
+          ncol = 2, nrow = 1, 
+          widths = c(1, 1, 1),
+        common.legend = FALSE)
+  # Its squishy and idk why
+final
 
-#Negative
-mod = glm(pcl_neg~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
-jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
-neg = jnplot$jnplot
-neg$labels$y = "B (95% CI) of CRS on PCL Negative Alteration"
-neg$labels$title=NULL
-neg$labels$x = "ACES"
-neg$labels$fill=NULL
-neg$theme= theme_classic()
-neg$labels$fill=NULL
-neg<-neg+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+ggsave("~/Desktop/Coding/Figure1_ACE_CRS_PTSD.png",plot=final, scale=1, width=8.5,height=5, units=c("in"),dpi=300)
+```
 
+### Explination of results
+These results suggest that ACEs may moderates the relationship between CRS and PTSS severity. More specifically, Individuals who report 4 or more ACEs have significantly higher PTSS based upon CRS compared to those who report less than 4 ACEs. The level that the interactive effect becomes signiicant is at 4 ACEs.
 
-#Arousal 
-mod = glm(pcl_aro~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
-jnplot = sim_slopes(mod, pred = crs_tot, modx = ace_tot, jnplot = TRUE, centered="all", mod.range=c(0,10))#Johnson neyman plot
-aro = jnplot$jnplot
-aro$labels$y = "B (95% CI) of CRS on PCL Hyperarousal"
-aro$labels$title=NULL
-aro$labels$x = "ACES"
-aro$labels$fill=NULL
-aro$theme= theme_classic()
-aro$labels$fill=NULL
-aro<-aro+ scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10))
+# Figure 2 PTSS Symptom Clusters
+
+### Create functions for plots
+For the symptom clusters we are first going to create functions (`intfig()` and `jnfig()`) that will create the plots for us, reducing the amount of code needed to make all 8 plots. We are also creating a vector of the PTSS cluster names that will be called in these functions. 
+```{r}
+#1. Interaction plot function
+intfig <- function(t){
+tempINT <-interact_plot(mod,
+              pred = crs_tot,modx = ace_tot, 
+              modx.values = c(0,1,4),
+              interval=TRUE,
+              colors=c(cnonsigline,csigline),
+              legend.main="ACEs") +
+              ylab(titles[t]) +
+              xlab("Covid Related Stress") +                                                          theme_classic() +
+              labs(title=titles[t]) +  
+              theme(legend.position = "bottom") +
+              theme(text = element_text(size = 8)) 
+return(tempINT)
+}
+
+#2. Johnson Neyman plot function
+jnfig <- function(t){
+tempJN<-johnson_neyman(mod, pred = crs_tot, modx = ace_tot,mod.range=c(0,10), sig.color = sigcolor, insig.color = insigcolor)$plot +
+  ylab(titles[t]) +
+  labs(title=titles[t]) +
+  xlab("ACES") +
+  scale_x_discrete(limits=c(0,1,2,3,4,5,6,7,8,9,10)) +
+  theme_classic()  +
+  theme(legend.position = "none") +
+  theme(text = element_text(size = 8)) 
+return(tempJN)
+}
+
+#3. Set values or functions
+ptsdvars = c("pcl_reex", "pcl_avoi", "pcl_neg",  "pcl_aro")
+titles = c("Re-experiencing","Avoidance","Negative Alteration","Arousal")
+```
+
+### Running Plot Functions
+The code below uses `intfig()` and `jnfig()` to make these plots for all four PTSS clusters.
+```{r figure 2}
+#1. Rexexpereincing symptoms 
+mod = glm(pcl_reex~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+rexINT = intfig(1)
+rexJN = jnfig(1)
+
+#2. Avoidance Symptoms
+mod = glm(pcl_avoi~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+avoiJN=jnfig(2)
+avoiINT=intfig(2)
+
+#3. Negative Cognition Symptoms
+mod = glm(pcl_neg~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+negJN=jnfig(3)
+negINT=intfig(3)
+
+#4. Hyper arousal Symptoms
+mod = glm(pcl_aro~crs_tot*ace_tot+LECtotal+PHQ9+White+Male, data = dfall)
+aroJN =jnfig(4)
+aroINT = intfig(4)
 
 #FINAL FIGURE
 library(ggpubr)
-final=ggarrange(rex, avoi, neg, aro, 
-          labels = c("A", "B", "C", "D"),
-          ncol = 2, nrow = 2, 
+final=ggarrange(rexINT, rexJN, avoiINT, avoiJN,negINT, negJN,aroINT, aroJN,
+        #  labels = c("A", "B", "C", "D","E","F","G","H"),
+          ncol = 4, nrow = 2, 
         common.legend = TRUE)
-ggsave("Figure2_Updated.png",plot=final, scale=1, width=8.5,height=9, units=c("in"),dpi=300)
+
 final
+ggsave("Figure2_1.18.23.png",plot=final, scale=1, width=10,height=8, units=c("in"),dpi=300)
 ```
 
+### Explanation of results
 
+These results suggest that ACEs moderates the relationship between CRS and Rexexpereincing, Negative Cognitions, and Hyperarousal symptoms. More specifically, Individuals who report 4 or more ACEs have significantly higher PTS for these symptom clusters (i.e., Rexexpereincing, Negative Cognitions, and Hyperarousal) based upon CRS compared to those who report less than 4 ACEs. The level that the interactive effect becomes signiicant is at 4 ACEs. For all of these symptom clusters
 
+There was not a significant interaction between CRS and ACEs on Avoidance symptoms; Said otherwise, there is not a difference between the relationship of CRS and avoidance PTSS at any level of ACEs. 
 
-
-```{r Table 2}
-library(sjPlot)
-library(sjmisc)
-library(sjlabelled)
-
-apa.reg.table(lm(pcl_tot~crs_tot+ace_tot+LECtotal+PHQ9+race+sex, data=dfall),filename = "table2_updated.doc",table.number = 2)
-```
-
-
-```{r issue with jtools}
-#define model
-mod = glm(pcl_tot~crs_tot*ace_tot+LECtotal+PHQ9+race+sex, data=dfall)#define model
-
-
-
-#Alternative?
-marginaleffects=marginaleffects(mod)
-plot_cap(mod, condition = c("crs_tot", "ace_tot"))
-```
 ```{r}
-# Install and load the packages
-#install.packages("ggplot2")
-#library(ggplot2)
-# Load the data
-data <- dfall
-# Fit a linear regression model
-model <- mod
-# Create the Johnson-Neyman plot
-ggplot(data, aes(x=data$explanatory, y=data$response)) +
-  geom_point(size=2) +
-  geom_smooth(method="lm", se=FALSE) +
-  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
-               formula = model, 
-               parse = TRUE) +
-  theme_bw() +
-  scale_x_continuous(name="Explanatory Variable") +
-  scale_y_continuous(name="Response Variable") +
-  labs(title="Johnson-Neyman Point of Significance")
+View(dfall)
+dfall$record_id
+# 1. Create a new data frame of just LEC items
+LEC_df <- dfall %>%
+# 2. Select all of the LEC items (1-17) for experienced, witnessed, and learned about. 
+  select(record_id,
+         lec_a_1___1:lec_a_1___3,
+         lec_a_2___1:lec_a_2___3,
+         lec_a_3___1:lec_a_3___3,
+         lec_a_4___1:lec_a_4___3,
+         lec_a_5___1:lec_a_5___3,
+         lec_a_6___1:lec_a_6___3,
+         lec_a_7___1:lec_a_7___3,
+         lec_a_8___1:lec_a_8___3,
+         lec_a_9___1:lec_a_9___3,
+         lec_a_10___1:lec_a_10___3,
+         lec_a_11___1:lec_a_11___3,
+         lec_a_12___1:lec_a_12___3,
+         lec_a_13___1:lec_a_13___3,
+         lec_a_14___1:lec_a_14___3,
+         lec_a_15___1:lec_a_15___3,
+         lec_a_16___1:lec_a_16___3,
+         lec_a_17___1:lec_a_17___3
+         ) %>%
+# 3. Create new factor variable for endorsement of lec items
+  mutate(
+    LEC_1 = as.factor(ifelse(lec_a_1___1 == 1, "Experienced",
+                     ifelse(lec_a_1___2 == 1, "Witnessed", 
+                     ifelse(lec_a_1___3 == 1, "Learned About", NA
+                      )))),
+    LEC_2 = as.factor(ifelse(lec_a_2___1 == 1, "Experienced",
+                     ifelse(lec_a_2___2 == 1, "Witnessed",
+                     ifelse(lec_a_2___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_3 = as.factor(ifelse(lec_a_3___1 == 1, "Experienced",
+                     ifelse(lec_a_3___2 == 1, "Witnessed",
+                     ifelse(lec_a_3___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_4 = as.factor(ifelse(lec_a_4___1 == 1, "Experienced",
+                     ifelse(lec_a_4___2 == 1, "Witnessed",
+                     ifelse(lec_a_4___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_5 = as.factor(ifelse(lec_a_5___1 == 1, "Experienced",
+                     ifelse(lec_a_5___2 == 1, "Witnessed",
+                     ifelse(lec_a_5___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_6 = as.factor(ifelse(lec_a_6___1 == 1, "Experienced",
+                     ifelse(lec_a_6___2 == 1, "Witnessed",
+                     ifelse(lec_a_6___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_7 = as.factor(ifelse(lec_a_7___1 == 1, "Experienced",
+                     ifelse(lec_a_7___2 == 1, "Witnessed",
+                     ifelse(lec_a_7___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_8 = as.factor(ifelse(lec_a_8___1 == 1, "Experienced",
+                     ifelse(lec_a_8___2 == 1, "Witnessed",
+                     ifelse(lec_a_8___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_9 = as.factor(ifelse(lec_a_9___1 == 1, "Experienced",
+                     ifelse(lec_a_9___2 == 1, "Witnessed",
+                     ifelse(lec_a_9___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_10 = as.factor(ifelse(lec_a_10___1 == 1, "Experienced",
+                      ifelse(lec_a_10___2 == 1, "Witnessed",
+                      ifelse(lec_a_10___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_11 = as.factor(ifelse(lec_a_11___1 == 1, "Experienced",
+                     ifelse(lec_a_11___2 == 1, "Witnessed",
+                     ifelse(lec_a_11___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_12 = as.factor(ifelse(lec_a_12___1 == 1, "Experienced",
+                     ifelse(lec_a_12___2 == 1, "Witnessed",
+                     ifelse(lec_a_12___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_13 = as.factor(ifelse(lec_a_13___1 == 1, "Experienced",
+                     ifelse(lec_a_13___2 == 1, "Witnessed",
+                     ifelse(lec_a_13___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_14 = as.factor(ifelse(lec_a_14___1 == 1, "Experienced",
+                     ifelse(lec_a_14___2 == 1, "Witnessed",
+                     ifelse(lec_a_14___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_15 = as.factor(ifelse(lec_a_15___1 == 1, "Experienced",
+                     ifelse(lec_a_15___2 == 1, "Witnessed",
+                     ifelse(lec_a_15___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_16 = as.factor(ifelse(lec_a_16___1 == 1, "Experienced",
+                     ifelse(lec_a_16___2 == 1, "Witnessed",
+                     ifelse(lec_a_16___3 == 1, "Learned About", NA 
+                     )))),
+    LEC_17 = as.factor(ifelse(lec_a_17___1 == 1, "Experienced",
+                     ifelse(lec_a_17___2 == 1, "Witnessed",
+                     ifelse(lec_a_17___3 == 1, "Learned About", NA 
+                     )))),
+# 4. Create new variables for the categories of traumas
+    
+    # Environmental Stressors
+      # 1. Natural disastor, 2 fire or explosion,  5, exposure to toxic substance, #5
+    Environment = as.factor(ifelse(!is.na(LEC_1), "Natural Disaster",
+                            ifelse(!is.na(LEC_2), "Fire / Explosion",
+                            ifelse(!is.na(LEC_4), "Toxic Substance", NA
+                             )))),
+    # Accidents
+      #3. transportation accident, #4. accident at work, home, recreational activity #15 sudden accidental death 
+    Accidents   = as.factor(ifelse(!is.na(LEC_3), "Car",
+                            ifelse(!is.na(LEC_4), "Work, Home, Activity",
+                            ifelse(!is.na(LEC_15), "Accidental Death", NA
+                             )))),
+    # Assult / IPV
+      #6 Physical Assault, 7 assult with weapon, 8 SA, 9 uncofortable sexual experience, 
+    Assault     = as.factor(ifelse(!is.na(LEC_6), "Physical",
+                            ifelse(!is.na(LEC_7), "With Weapon",
+                            ifelse(!is.na(LEC_8), "Sexual",
+                            ifelse(!is.na(LEC_9), "Other Sexual", NA
+                            ))))),
+    # combat, death, human suffering
+      # 10 Combat zone, 11 captivity, # 13 severe human suffering #16 serious injury, harm , or death you caused to someone else
+    Human_Suffering  = as.factor(ifelse(!is.na(LEC_10), "Combat",
+                            ifelse(!is.na(LEC_11), "Captivity",
+                            ifelse(!is.na(LEC_13), "Human Suffering", NA
+                            )))),
+    #illness or injury
+      #12 life threatning ilness or injury  
+    Illness     = as.factor(ifelse(!is.na(LEC_12), "Ilness or Injury", NA
+                            )),
+    Other       = as.factor(ifelse(!is.na(LEC_17), "Other", NA
+                            )))
+```
+
+
+```{r}
+#5. Create a new long dataframe with the categories of trauma, and types of experiences
+
+LEC_long <- pivot_longer(LEC_df,
+                         LEC_1:LEC_17,
+                         names_to = "Trauma",
+                         values_to = "Type") %>%
+            select(record_id,Environment:Type) %>%
+            filter(!is.na(Type)) %>%
+            mutate(
+              Type = fct_relevel(Type,"Learned About","Witnessed","Experienced"),
+              Trauma = fct_relevel(Trauma, "LEC_1","LEC_2", "LEC_3","LEC_4","LEC_5","LEC_6","LEC_7","LEC_8","LEC_9",                                     "LEC_10","LEC_11","LEC_12","LEC_13","LEC_14","LEC_15","LEC_16","LEC_17"),
+              Group = as.factor(
+                  ifelse(Trauma == "LEC_1"  | Trauma == "LEC_2"  | Trauma == "LEC_5", "Environment",
+                  ifelse(Trauma == "LEC_3"  | Trauma == "LEC_4"  | Trauma == "LEC_15", "Accidents",
+                  ifelse(Trauma == "LEC_6"  | Trauma == "LEC_7"  | Trauma == "LEC_8"  | Trauma == "LEC_9",  "Assault",
+                  ifelse(Trauma == "LEC_10" | Trauma == "LEC_11" | Trauma == "LEC_13" | Trauma == "LEC_14" | Trauma == "LEC_16", "Human Suffering",
+                  ifelse(Trauma == "LEC_12", "Illness or Injury",
+                  ifelse(Trauma == "LEC_17", "Other", NA
+                           ))))))))
+
+LEC_long$Trauma
+ # 10 Combat zone, 11 captivity, # 13 severe human suffering #16 serious injury, harm , or death you caused to someone else
+
+View(LEC_long)
+```
+
+
+```{r}
+#6. Create table for type of trauma by type of expereince
+TTab       <- xtabs(~ Trauma + Type, data = LEC_long)
+TTab2 <- data.frame(TTab)
+percent    <- round((100*(prop.table(TTab))),2)
+TTab[,1] <- paste(TTab[,1], "(",percent[,1],"%",")")
+TTab[,2] <- paste(TTab[,2], "(",percent[,2],"%",")")
+TTab[,3] <- paste(TTab[,3], "(",percent[,3],"%",")")
+
+TTab2
+TTab2 <- TTab2 %>%
+  mutate(
+    Group = as.factor(
+                  ifelse(Trauma == "LEC_1"  | Trauma == "LEC_2"  | Trauma == "LEC_5", "Environment",
+                  ifelse(Trauma == "LEC_3"  | Trauma == "LEC_4"  | Trauma == "LEC_15", "Accidents",
+                  ifelse(Trauma == "LEC_6"  | Trauma == "LEC_7"  | Trauma == "LEC_8"  | Trauma == "LEC_9",  "Assault",
+                  ifelse(Trauma == "LEC_10" | Trauma == "LEC_11" | Trauma == "LEC_13" | Trauma == "LEC_14" | Trauma == "LEC_16", "Human Suffering",
+                  ifelse(Trauma == "LEC_12", "Illness or Injury",
+                  ifelse(Trauma == "LEC_17", "Other", NA
+                           ))))))))
+TTab2
+
+
+```
+
+
+```{r}
+#7. stacked barchart
+
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+
+
+
+TTab2 %>%
+  mutate(Group = fct_reorder(Group, desc(Group))) %>%
+ggplot(aes(fill=Type,y=Freq, x=Group)) + 
+    geom_bar(position="stack",stat="identity") +
+    scale_fill_manual(values = c("#FFAE49","#44A5C2","#024B7B")) +
+    labs(
+      title ="Number of Trauma Traumatic Experiences",
+      subtitle = "Grouped by Type of Trauma and Experience on the LEC-5"
+      ) +
+    xlab("Type of Traumatic Experience") +
+    ylab("Number of Participants") +
+    #scale_y_continuous(name = "Number of Participants",limits=c(0,3500))
+    coord_flip() +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_line(
+             linewidth = .7))
+    
+    
 ```
 
