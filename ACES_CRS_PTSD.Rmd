@@ -259,7 +259,7 @@ These results suggest that ACEs moderates the relationship between CRS and Rexex
 
 There was not a significant interaction between CRS and ACEs on Avoidance symptoms; Said otherwise, there is not a difference between the relationship of CRS and avoidance PTSS at any level of ACEs. 
 
-```{r}
+```{r,include=FALSE}
 View(dfall)
 dfall$record_id
 # 1. Create a new data frame of just LEC items
@@ -390,7 +390,7 @@ LEC_df <- dfall %>%
 ```
 
 
-```{r}
+```{r,include=FALSE}
 #5. Create a new long dataframe with the categories of trauma, and types of experiences
 
 LEC_long <- pivot_longer(LEC_df,
@@ -410,24 +410,14 @@ LEC_long <- pivot_longer(LEC_df,
                   ifelse(Trauma == "LEC_12", "Illness or Injury",
                   ifelse(Trauma == "LEC_17", "Other", NA
                            ))))))))
-
-LEC_long$Trauma
- # 10 Combat zone, 11 captivity, # 13 severe human suffering #16 serious injury, harm , or death you caused to someone else
-
-View(LEC_long)
 ```
 
 
-```{r}
+```{r,include=FALSE}
 #6. Create table for type of trauma by type of expereince
-TTab       <- xtabs(~ Trauma + Type, data = LEC_long)
-TTab2 <- data.frame(TTab)
-percent    <- round((100*(prop.table(TTab))),2)
-TTab[,1] <- paste(TTab[,1], "(",percent[,1],"%",")")
-TTab[,2] <- paste(TTab[,2], "(",percent[,2],"%",")")
-TTab[,3] <- paste(TTab[,3], "(",percent[,3],"%",")")
-
-TTab2
+TraumaTab   <- xtabs(~ Trauma + Type, data = LEC_long)
+TTab2 <- data.frame(TraumaTab)
+percent    <- round((100*(prop.table(TraumaTab))),2)
 TTab2 <- TTab2 %>%
   mutate(
     Group = as.factor(
@@ -438,21 +428,31 @@ TTab2 <- TTab2 %>%
                   ifelse(Trauma == "LEC_12", "Illness or Injury",
                   ifelse(Trauma == "LEC_17", "Other", NA
                            ))))))))
-TTab2
-
 
 ```
 
+```{r}
+TraumaTab[,1] <- paste(TraumaTab[,1], "(",percent[,1],"%",")")
+TraumaTab[,2] <- paste(TraumaTab[,2], "(",percent[,2],"%",")")
+TraumaTab[,3] <- paste(TraumaTab[,3], "(",percent[,3],"%",")")
+TraumaTab <- data.frame(TraumaTab) 
 
+TTab<-pivot_wider(TraumaTab,names_from = Type, values_from = Freq)%>%
+    mutate(Group = as.factor(
+                  ifelse(Trauma == "LEC_1"  | Trauma == "LEC_2"  | Trauma == "LEC_5", "Environment",
+                  ifelse(Trauma == "LEC_3"  | Trauma == "LEC_4"  | Trauma == "LEC_15", "Accidents",
+                  ifelse(Trauma == "LEC_6"  | Trauma == "LEC_7"  | Trauma == "LEC_8"  | Trauma == "LEC_9",  "Assault",
+                  ifelse(Trauma == "LEC_10" | Trauma == "LEC_11" | Trauma == "LEC_13" | Trauma == "LEC_14" | Trauma == "LEC_16", "Human Suffering",
+                  ifelse(Trauma == "LEC_12", "Illness or Injury",
+                  ifelse(Trauma == "LEC_17", "Other", NA
+                           ))))))))
+write_csv(TTab,"~/Desktop/Coding/Data/Trauma_Table")
+```
+
+
+Here is a stacked barchart based upon the type of Trauma people endorsed and how they expereinced that. 
 ```{r}
 #7. stacked barchart
-
-library(ggplot2)
-library(viridis)
-library(hrbrthemes)
-
-
-
 TTab2 %>%
   mutate(Group = fct_reorder(Group, desc(Group))) %>%
 ggplot(aes(fill=Type,y=Freq, x=Group)) + 
@@ -471,7 +471,6 @@ ggplot(aes(fill=Type,y=Freq, x=Group)) +
           panel.grid.minor = element_blank(),
           panel.grid.major.x = element_line(
              linewidth = .7))
-    
-    
+  
 ```
 
