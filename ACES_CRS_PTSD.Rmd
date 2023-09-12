@@ -18,7 +18,7 @@ Hubert. T.^1^ , Rippey, C.^1^ , Fenlon. E.^1^ , Wild, H.^1^ , Adams. T.^1,2^ ( _
 
 ^2^Department of Psychiatry, Yale School of Medicine.
 
-The code below was primarily written by [Hannah Wild](https://www.linkedin.com/in/hannah-wild-she-her-83272131) and optimized by the primary author [Troy Hubert](https://github.com/Troy-Hubert).
+The code below was primarily written by [Hannah Wild](https://www.linkedin.com/in/hannah-wild-she-her-83272131) with minor changes by the primary author [Troy Hubert](https://github.com/Troy-Hubert).
 
 # Current Study
 
@@ -457,11 +457,7 @@ TTab2 %>%
   mutate(Group = fct_reorder(Group, desc(Group))) %>%
 ggplot(aes(fill=Type,y=Freq, x=Group)) + 
     geom_bar(position="stack",stat="identity") +
-    scale_fill_manual(values = c("#FFAE49","#44A5C2","#024B7B")) +
-    labs(
-      title ="Number of Trauma Traumatic Experiences",
-      subtitle = "Grouped by Type of Trauma and Experience on the LEC-5"
-      ) +
+    scale_fill_manual(values = c("#FFAE49","#44A5C2","#024B7B"), name = "Experience") +
     xlab("Type of Traumatic Experience") +
     ylab("Number of Participants") +
     #scale_y_continuous(name = "Number of Participants",limits=c(0,3500))
