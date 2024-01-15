@@ -88,6 +88,19 @@ dfall$ace2cat = factor(dfall$ace2cat)
 dfall$race = factor(dfall$race)
 dfall$sex = factor(dfall$sex)
 
+dfall <- dfall %>%
+  mutate(
+    race = recode(race,
+          "1" = "American Indian or Alaska Native",
+          "2" =  "Asian",
+          "3" = "Black or African American",
+          "4" = "Native Hawaiian or Other Pacific Islander",
+          "5" = "White",
+          "6" = "Biracial",
+          "7" = "Other",
+          "8" = "Unknown"
+         ))
+
 dfall$White=0
 dfall$White[dfall$race==5]=1
 dfall$White=factor(dfall$White)
@@ -103,9 +116,19 @@ The first thing we want to do is create a table displaying descriptive statistic
 
 ### Demographics and descriptives statistics of variables 
 ```{r Table 1}
-Demo_tab<-data.frame(table1::table1(~ace_tot+pcl_tot+crs_tot+LECtotal+PHQ9+White+Male | ace_3cat, data=dfall))
+Demo_tab<-data.frame(table1::table1(~ace_tot+pcl_tot+crs_tot+LECtotal+PHQ9+race+Male | ace_3cat, data=dfall))
 Demo_tab<- cbind(Demo_tab[,1], Demo_tab[,5], Demo_tab[,3], Demo_tab[,4], Demo_tab[,2])
 colnames(Demo_tab) <- c("Variable","Total Sample", "0 ACEs", "1-3 ACEs", "≥4 ACEs" )
+
+hispanic <- dfall |>
+  filter(
+    race == "White"
+  ) |>
+  mutate(
+    demo_ethnicity = factor(demo_ethnicity)
+  )
+
+dfSummary(hispanic$demo_ethnicity)
 
 x<-knitr::kable(Demo_tab) %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
